@@ -1,4 +1,4 @@
-import type { ComponentType } from './types';
+import type { ComponentType } from './index';
 
 export interface AdvanceState {
   isAdvanced: boolean;

@@ -24,15 +24,12 @@ type CustomComponents<T = _CustomComponents> = {
 
 export interface ComponentProps {
   Input: ExtractPropTypes<(typeof import('element-plus/es/components/input'))['default']>;
-  InputGroup: ExtractPropTypes<(typeof import('element-plus/es/components/input'))['InputGroup']>;
-  InputPassword: ExtractPropTypes<(typeof import('element-plus/es/components/input'))['InputPassword']>;
-  InputSearch: ExtractPropTypes<(typeof import('element-plus/es/components/input'))['InputSearch']>;
-  InputTextArea: ExtractPropTypes<(typeof import('element-plus/es/components/input'))['Textarea']>;
-  // InputNumber: ExtractPropTypes<(typeof import('ant-design-vue/es/input-number'))['default']>;
+  InputNumber: ExtractPropTypes<(typeof import('element-plus/es/components/input-number'))['default']>;
   // InputCountDown: CustomComponents['InputCountDown'] & ComponentProps['Input'];
-  // Select: ExtractPropTypes<(typeof import('ant-design-vue/es/select'))['default']>;
-  // ApiSelect: CustomComponents['ApiSelect'] & ComponentProps['Select'];
-  // TreeSelect: ExtractPropTypes<(typeof import('ant-design-vue/es/tree-select'))['default']>;
+  Select: ExtractPropTypes<(typeof import('element-plus/es/components/select'))['default']>;
+  VirtualSelect: ExtractPropTypes<(typeof import('element-plus/es/components/select-v2'))['default']>;
+  ApiSelect: CustomComponents['ApiSelect'] & ComponentProps['Select'];
+  TreeSelect: ExtractPropTypes<(typeof import('element-plus/es/components/tree-select'))['default']>;
   // ApiTree: CustomComponents['ApiTree'] &
   //   ExtractPropTypes<(typeof import('ant-design-vue/es/tree'))['default']>;
   // ApiTreeSelect: CustomComponents['ApiTreeSelect'] & ComponentProps['TreeSelect'];

@@ -40,45 +40,42 @@
 </template>
 
 <script lang="ts" setup>
-import type { ColProps as ElColProps } from 'element-plus/lib/components/col';
+  import type { ColProps as ElColProps } from 'element-plus/lib/components/col';
 
-import { computed } from 'vue';
-import { ElCol, ElFormItem, ElButton } from 'element-plus';
-import { useFormContext } from '../hooks/useFormContext';
+  import { computed } from 'vue';
+  import { ElCol, ElFormItem, ElButton } from 'element-plus';
+  import { useFormContext } from '../hooks/useFormContext';
 
-defineOptions({ name: 'BasicFormAction' });
+  defineOptions({ name: 'BasicFormAction' });
 
-const props = withDefaults(defineProps<{
-  showActionButtonGroup: boolean;
-  showResetButton: boolean;
-  showSubmitButton: boolean;
-  showAdvancedButton: boolean;
-  resetButtonOptions: SYButtonProps;
-  submitButtonOptions: SYButtonProps;
-  actionColOptions: ElColProps;
-  actionSpan: number;
-  isAdvanced: boolean;
-  hideAdvanceBtn: boolean;
-}>(), {
-  showActionButtonGroup: true,
-  showResetButton: true,
-  showSubmitButton: true,
-  showAdvancedButton: true,
-  actionSpan: 6,
-  resetButtonOptions: () => ({}),
-  submitButtonOptions: () => ({}),
-});
+  const props = withDefaults(defineProps<{
+    showActionButtonGroup: boolean;
+    showResetButton: boolean;
+    showSubmitButton: boolean;
+    showAdvancedButton: boolean;
+    resetButtonOptions: SYButtonProps;
+    submitButtonOptions: SYButtonProps;
+    actionColOptions: ElColProps;
+    actionSpan: number;
+    isAdvanced: boolean;
+    hideAdvanceBtn: boolean;
+  }>(), {
+    showActionButtonGroup: true,
+    showResetButton: true,
+    showSubmitButton: true,
+    showAdvancedButton: true,
+    actionSpan: 6,
+    resetButtonOptions: () => ({}),
+    submitButtonOptions: () => ({}),
+  });
 
-const emit = defineEmits(['toggle-advanced']);
+  const emit = defineEmits(['toggle-advanced']);
 
-const { resetAction, submitAction } = useFormContext();
+  const { resetAction, submitAction } = useFormContext();
 
-const getResetBtnOptions = computed((): SYButtonProps => {
+  const getResetBtnOptions = computed((): SYButtonProps => {
     return Object.assign(
-      {
-        type: 'primary',
-        syText: '重置'
-      },
+      { type: 'primary', syText: '重置' },
       props.resetButtonOptions,
     );
   });
