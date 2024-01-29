@@ -1,5 +1,6 @@
 import type { ComponentType } from '../types';
 import type { ComponentFormSchema, FormSchemaInner, SlotFormSchema } from '../types/form';
+import type { FormItemRule as ValidationRule } from "element-plus/lib/components/form";
 
 export function isSlotFormSchema(
   schema: FormSchemaInner
@@ -34,6 +35,26 @@ export function createPlaceholderMessage(component: ComponentType) {
     return '请选择';
   }
   return '';
+}
+
+/**
+ * @description: 根据组件类型设置校验类型
+ */
+export function setComponentRuleType(
+  rule: ValidationRule,
+  component: ComponentType,
+  valueFormat: string,
+) {
+  if (Reflect.has(rule, 'type')) {
+    return;
+  }
+  if (['DatePicker', 'MonthPicker', 'WeekPicker', 'TimePicker'].includes(component)) {
+    rule.type = valueFormat ? 'string' : 'object';
+  } else if (['RangePicker', 'Upload', 'CheckboxGroup', 'TimePicker'].includes(component)) {
+    rule.type = 'array';
+  } else if (['InputNumber'].includes(component)) {
+    rule.type = 'number';
+  }
 }
 
 // TODO 自定义组件封装会出现验证问题，因此这里目前改成手动触发验证

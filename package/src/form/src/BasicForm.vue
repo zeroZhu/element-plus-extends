@@ -1,10 +1,27 @@
 <template>
   <ElForm
     v-bind="getBindValue"
+    ref="formElRef"
+    :model="formModel"
   >
     <ElRow v-bind="getRow">
       <slot name="formHeader"></slot>
-      {{ fieldsIsAdvancedMap }}
+      <template v-for="schema in getSchema" :key="schema.field">
+        <FormItem
+          :isAdvanced="fieldsIsAdvancedMap[schema.field]"
+          :tableAction="props.tableAction"
+          :formAction="formAction"
+          :schema="schema"
+          :formProps="getProps"
+          :allDefaultValues="defaultValueRef"
+          :formModel="formModel"
+          :setFormModel="setFormModel"
+        >
+          <template #[item]="data" v-for="item in Object.keys($slots)">
+            <slot :name="item" v-bind="data || {}"></slot>
+          </template>
+        </FormItem>
+      </template>
       <FormAction v-bind="getFormActionBindProps" @toggle-advanced="handleToggleAdvanced">
         <template
           #[item]="data"
@@ -24,6 +41,7 @@
 
   import { computed, reactive, ref, unref, useAttrs } from 'vue';
   import { ElForm, ElRow } from 'element-plus';
+  import FormItem from './components/FormItem.vue';
   import FormAction from './components/FormAction.vue';
 
   import { basicProps } from './props';
@@ -84,7 +102,7 @@
       ) {
         const opt = {
           schema,
-          tableAction: props.tableAction ?? ({} as TableActionType),
+          tableAction: props.tableAction ?? ({} as any),
           formModel,
           formActionType: {} as FormActionType,
         };
@@ -131,4 +149,10 @@
     defaultValueRef,
   });
   const getFormActionBindProps = computed(() => ({ ...getProps.value, ...advanceState }) as InstanceType<typeof FormAction>['$props'])
+
+  const formAction = {} as any;
+
+  function setFormModel(key: string, value: any, schema: FormSchema) {
+    console.log(key, value, schema);
+  }
 </script>

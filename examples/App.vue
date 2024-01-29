@@ -1,10 +1,21 @@
 <script setup lang="ts">
-  import { BasicForm } from '@package/src/form';
+  import { type FormSchema, BasicForm } from '@package/src/form';
+
+  const schemas: FormSchema[] = [
+    {
+      field: 'name',
+      component: 'Input'
+    },
+    {
+      field: 'age',
+      component: 'InputNumber'
+    },
+  ]
 </script>
 
 <template>
   <div>
-    <BasicForm />
+    <BasicForm :schemas="schemas" />
   </div>
 </template>
 

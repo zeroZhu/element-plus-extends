@@ -124,6 +124,8 @@ export interface FormProps {
   // Show confirmation button
   showSubmitButton?: boolean;
 
+  tableAction: any;
+
   resetFunc?: () => Promise<void>;
   submitFunc?: () => Promise<void>;
   transformDateFunc?: (date: any) => string;
