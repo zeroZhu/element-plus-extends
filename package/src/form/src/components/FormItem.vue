@@ -1,5 +1,5 @@
 <script lang="tsx">
-import { PropType, Ref, computed, defineComponent, toRefs, unref } from "vue";
+import { type PropType, type Ref, computed, defineComponent, toRefs, unref } from "vue";
 import type {
   FormActionType,
   FormProps,
@@ -10,9 +10,10 @@ import { isIncludeSimpleComponents } from "../types/hooks";
 
 import { useItemLabelWidth } from "../hooks/useLabelWidth";
 import {
-NO_AUTO_LINK_COMPONENTS,
+  NO_AUTO_LINK_COMPONENTS,
   createPlaceholderMessage,
   isComponentFormSchema,
+  setComponentRuleType,
 } from "../hooks/useForm";
 import { cloneDeep, upperFirst } from "lodash-es";
 
@@ -23,36 +24,38 @@ import { ElCol, ElFormItem, ElDivider } from "element-plus";
 import { componentMap } from "../componentMap";
 
 export default defineComponent({
-  name: 'BasicFormItem',
+  name: "BasicFormItem",
   inheritAttrs: false,
   props: {
     schema: {
       type: Object as PropType<FormSchema>,
-      default: () => ({})
+      default: () => ({}),
     },
     formProps: {
       type: Object as PropType<FormProps>,
-      default: () => ({})
+      default: () => ({}),
     },
     allDefaultValues: {
       type: Object as PropType<Recordable>,
-      default: () => ({})
+      default: () => ({}),
     },
     formModel: {
       type: Object as PropType<Recordable<any>>,
-      default: () => ({})
+      default: () => ({}),
     },
     tableAction: {
-      type: Object as PropType<FormActionType>
+      type: Object as PropType<FormActionType>,
     },
     formAction: {
-      type: Object as PropType<any>
+      type: Object as PropType<any>,
     },
     isAdvanced: {
-      type: Boolean
+      type: Boolean,
     },
     setFormModel: {
-      type: Function as PropType<(key: string, value: any, schema: FormSchema) => void>,
+      type: Function as PropType<
+        (key: string, value: any, schema: FormSchema) => void
+      >,
       default: null,
     },
   },
@@ -61,7 +64,7 @@ export default defineComponent({
       schema: Ref<FormSchema>;
       formProps: Ref<FormProps>;
     };
-    
+
     const itemLabelWidthProp = useItemLabelWidth(schema, formProps);
 
     // 获所有传入values
@@ -102,7 +105,7 @@ export default defineComponent({
       }
       return componentProps as Recordable<any>;
     });
-    
+
     // 判断是否禁用
     const getDisable = computed(() => {
       // 表单整个是否禁用
@@ -139,6 +142,7 @@ export default defineComponent({
 
     // 判断是否显示
     function getShow(): { isShow: boolean; isIfShow: boolean } {
+      console.log('getShow====')
       // 获取单个schema中show if
       const { show, ifShow } = props.schema;
       // 获取单个schema是否折叠
@@ -198,7 +202,7 @@ export default defineComponent({
         : assertLabel;
 
       function validator(rule: any, value: any) {
-        const msg = rule.message || defaultMsg as string;
+        const msg = rule.message || (defaultMsg as string);
         if (isEmpty(value)) {
           return Promise.reject(msg);
         } else if (
@@ -215,28 +219,38 @@ export default defineComponent({
         return Promise.resolve();
       }
       // 判定是否必须
-      const getRequired = isFunction(required) ? required(unref(getValues)) : required;
+      const getRequired = isFunction(required)
+        ? required(unref(getValues))
+        : required;
 
       /*
-      * 1.设置了require，没有rules默认给一个rule
-      * 2.设置了require，也有其他rules，以rule为优先
-      * */
+       * 1.设置了require，没有rules默认给一个rule
+       * 2.设置了require，也有其他rules，以rule为优先
+       * */
       if (getRequired) {
         if (isEmpty(rules)) {
           rules = [
-            { required: getRequired, asyncValidator: validator, trigger: ["blur", "change"] }
+            {
+              required: getRequired,
+              asyncValidator: validator,
+              trigger: ["blur", "change"],
+            },
           ];
         } else {
-          const requiredIndex = rules.findIndex((rule) => Reflect.has(rule, "required"));
+          const requiredIndex = rules.findIndex((rule) =>
+            Reflect.has(rule, "required")
+          );
           if (requiredIndex)
             rules.push({ required: true, asyncValidator: validator });
         }
       }
 
+      // 寻找required的rule
       const requiredRuleIndex: number = rules.findIndex(
-        (rule) => Reflect.has(rule, 'required') && !Reflect.has(rule, 'validator'),
+        (rule) =>
+          Reflect.has(rule, "required") && !Reflect.has(rule, "validator")
       );
-      
+
       if (requiredRuleIndex !== -1) {
         const rule = rules[requiredRuleIndex];
         const { isShow } = getShow();
@@ -244,15 +258,155 @@ export default defineComponent({
           rule.required = false;
         }
         if (component) {
-          rule.message = rule.message || defaultMsg as string;
+          rule.message = rule.message || (defaultMsg as string);
 
-          if (component.includes('Input')) rule.whitespace = true;
+          if (component.includes("Input")) rule.whitespace = true;
           const valueFormat = unref(getComponentsProps)?.valueFormat;
           setComponentRuleType(rule, component, valueFormat);
         }
       }
       return rules;
     }
+
+    function renderComponent() {
+      if (!isComponentFormSchema(props.schema)) {
+        return null;
+      }
+      const {
+        renderComponentContent,
+        component,
+        field,
+        changeEvent = "change",
+        valueField,
+      } = props.schema;
+      // 判断是否是选择类型
+      const isCheck = component && ["Switch", "Checkbox"].includes(component);
+      // 格式化变更事件
+      const eventKey = `on${upperFirst(changeEvent)}`;
+      const on = {
+        [eventKey]: (...args: Nullable<Recordable<any>>[]) => {
+          const [e] = args;
+          if (propsData[eventKey]) {
+            propsData[eventKey](...args);
+          }
+          const target = e ? e.target : null;
+          const value = target ? (isCheck ? target.checked : target.value) : e;
+          props.setFormModel(field, value, props.schema);
+        },
+      };
+      // 获取组件类型
+      const Comp = componentMap.get(component) as ReturnType<
+        typeof defineComponent
+      >;
+      const { autoSetPlaceHolder, size } = props.formProps;
+      const propsData: Recordable<any> = {
+        allowClear: true,
+        size,
+        ...unref(getComponentsProps),
+        disabled: unref(getDisable),
+        readonly: unref(getReadonly),
+      };
+
+      // 判定placeholder
+      const isCreatePlaceholder = !propsData.disabled && autoSetPlaceHolder;
+      if (isCreatePlaceholder && component !== "RangePicker" && component) {
+        propsData.placeholder =
+          unref(getComponentsProps)?.placeholder ||
+          createPlaceholderMessage(component);
+      }
+      propsData.codeField = field;
+      propsData.formValues = unref(getValues);
+
+      const bindValue: Recordable<any> = {
+        [valueField || (isCheck ? "checked" : "value")]: props.formModel[field],
+      };
+
+      const compAttr: Recordable<any> = {
+        ...propsData,
+        ...on,
+        ...bindValue,
+      };
+
+      if (!renderComponentContent) {
+        return <Comp {...compAttr} />;
+      }
+
+      const compSlot = isFunction(renderComponentContent)
+        ? {
+            ...renderComponentContent(unref(getValues), {
+              disabled: unref(getDisable),
+              readonly: unref(getReadonly),
+            }),
+          }
+        : {
+            default: () => renderComponentContent,
+          };
+      return <Comp {...compAttr}>{compSlot}</Comp>;
+    }
+
+    function renderItem() {
+      const { itemProps, slot, render, field, suffix, component } =
+        props.schema;
+      const { labelCol, wrapperCol } = unref(itemLabelWidthProp);
+      const { colon } = props.formProps;
+      const opts = {
+        disabled: unref(getDisable),
+        readonly: unref(getReadonly),
+      };
+      let ItemComponent;
+      switch (component) {
+        case "Divider":
+          {
+            ItemComponent = (
+              <ElCol span={24}>
+                <ElDivider {...unref(getComponentsProps)}>1111</ElDivider>
+              </ElCol>
+            );
+          }
+          break;
+        default: {
+          const getContent = () => {
+            return slot
+              ? getSlot(slots, slot, unref(getValues), opts)
+              : render
+              ? render(unref(getValues), opts)
+              : renderComponent();
+          };
+          const showSuffix = !!suffix;
+          const getSuffix = isFunction(suffix)
+            ? suffix(unref(getValues))
+            : suffix;
+
+          // TODO 自定义组件验证会出现问题，因此这里框架默认将自定义组件设置手动触发验证，如果其他组件还有此问题请手动设置autoLink=false
+          if (component && NO_AUTO_LINK_COMPONENTS.includes(component)) {
+            props.schema &&
+              (props.schema.itemProps! = {
+                autoLink: false,
+                ...props.schema.itemProps,
+              });
+          }
+          ItemComponent = (
+            <ElFormItem
+              name={field}
+              colon={colon}
+              class={{ "suffix-item": showSuffix }}
+              {...(itemProps as Recordable<any>)}
+              label="111"
+              rules={handleRules()}
+              labelCol={labelCol}
+              wrapperCol={wrapperCol}
+            >
+              <div style="display:flex">
+                <div style="flex:1;">{getContent()}</div>
+                {showSuffix && <span class="suffix">{getSuffix}</span>}
+              </div>
+            </ElFormItem>
+          );
+        }
+      }
+      return ItemComponent;
+    }
+    // TSX渲染
     return () => {
       const {
         colProps = {},
@@ -266,7 +420,11 @@ export default defineComponent({
       const { baseColProps = {} } = props.formProps;
       const realColProps = { ...baseColProps, ...colProps };
       const { isIfShow, isShow } = getShow();
-      const opts = { disabled: unref(getDisable), readonly: unref(getReadonly) };
+      console.log('isIfShow====111111111')
+      const opts = {
+        disabled: unref(getDisable),
+        readonly: unref(getReadonly),
+      };
 
       // 渲染内容函数
       const getContent = () => {
@@ -276,7 +434,6 @@ export default defineComponent({
           ? renderColContent(unref(getValues), opts)
           : renderItem();
       };
-
       return (
         isIfShow && (
           <ElCol {...realColProps} v-show={isShow}>
@@ -284,145 +441,7 @@ export default defineComponent({
           </ElCol>
         )
       );
-    }
-  }
+    };
+  },
 });
-
-
-
-function renderComponent() {
-  if (!isComponentFormSchema(props.schema)) {
-    return null;
-  }
-  const {
-    renderComponentContent,
-    component,
-    field,
-    changeEvent = "change",
-    valueField,
-  } = props.schema;
-  // 判断是否是选择类型
-  const isCheck = component && ["Switch", "Checkbox"].includes(component);
-  // 格式化变更事件
-  const eventKey = `on${upperFirst(changeEvent)}`;
-  const on = {
-    [eventKey]: (...args: Nullable<Recordable<any>>[]) => {
-      const [e] = args;
-      if (propsData[eventKey]) {
-        propsData[eventKey](...args);
-      }
-      const target = e ? e.target : null;
-      const value = target ? (isCheck ? target.checked : target.value) : e;
-      props.setFormModel(field, value, props.schema);
-    },
-  };
-  // 获取组件类型
-  const Comp = componentMap.get(component) as ReturnType<
-    typeof defineComponent
-  >;
-  const { autoSetPlaceHolder, size } = props.formProps;
-  const propsData: Recordable<any> = {
-    allowClear: true,
-    size,
-    ...unref(getComponentsProps),
-    disabled: unref(getDisable),
-    readonly: unref(getReadonly),
-  };
-
-  // 判定placeholder
-  const isCreatePlaceholder = !propsData.disabled && autoSetPlaceHolder;
-  if (isCreatePlaceholder && component !== "RangePicker" && component) {
-    propsData.placeholder =
-      unref(getComponentsProps)?.placeholder ||
-      createPlaceholderMessage(component);
-  }
-  propsData.codeField = field;
-  propsData.formValues = unref(getValues);
-
-  const bindValue: Recordable<any> = {
-    [valueField || (isCheck ? "checked" : "value")]: props.formModel[field],
-  };
-
-  const compAttr: Recordable<any> = {
-    ...propsData,
-    ...on,
-    ...bindValue,
-  };
-
-  if (!renderComponentContent) {
-    return <Comp {...compAttr} />;
-  }
-
-  const compSlot = isFunction(renderComponentContent)
-    ? {
-        ...renderComponentContent(unref(getValues), {
-          disabled: unref(getDisable),
-          readonly: unref(getReadonly),
-        }),
-      }
-    : {
-        default: () => renderComponentContent,
-      };
-  return <Comp {...compAttr}>{compSlot}</Comp>;
-}
-
-function renderItem() {
-  const { itemProps, slot, render, field, suffix, component } = props.schema;
-  const { labelCol, wrapperCol } = unref(itemLabelWidthProp);
-  const { colon } = props.formProps;
-  const opts = { disabled: unref(getDisable), readonly: unref(getReadonly) };
-  let RenderItem;
-  switch (component) {
-    case 'Divider':
-      RenderItem = (
-        <ElCol span={24}>
-          <ElDivider {...unref(getComponentsProps)}>1111</ElDivider>
-        </ElCol>
-      )
-      break;
-    default:
-      const getContent = () => {
-        return slot
-          ? getSlot(slots, slot, unref(getValues), opts)
-          : render
-          ? render(unref(getValues), opts)
-          : renderComponent();
-      };
-      const showSuffix = !!suffix;
-      const getSuffix = isFunction(suffix) ? suffix(unref(getValues)) : suffix;
-
-      // TODO 自定义组件验证会出现问题，因此这里框架默认将自定义组件设置手动触发验证，如果其他组件还有此问题请手动设置autoLink=false
-      if (component && NO_AUTO_LINK_COMPONENTS.includes(component)) {
-        props.schema &&
-          (props.schema.itemProps! = {
-            autoLink: false,
-            ...props.schema.itemProps,
-          });
-      }
-
-      RenderItem = (
-        <ElFormItem
-          name={field}
-          colon={colon}
-          class={{ 'suffix-item': showSuffix }}
-          {...(itemProps as Recordable<any>)}
-          label='111'
-          rules={handleRules()}
-          labelCol={labelCol}
-          wrapperCol={wrapperCol}
-        >
-          <div style="display:flex">
-            <div style="flex:1;">{getContent()}</div>
-            {showSuffix && <span class="suffix">{getSuffix}</span>}
-          </div>
-        </ElFormItem>
-      );
-  }
-
-  return RenderItem;
-}
-
-// function renderLabelHelpMessage() {}
-
-
 </script>

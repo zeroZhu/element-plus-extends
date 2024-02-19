@@ -17,6 +17,8 @@ export default defineConfig({
     }
   },
   build: {
+    target: 'es2015',
+    cssTarget: 'chrome80',
     rollupOptions: {
       input: {
         examples: resolve(__dirname, 'examples/index.html'),

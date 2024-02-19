@@ -124,7 +124,7 @@ export interface FormProps {
   // Show confirmation button
   showSubmitButton?: boolean;
 
-  tableAction: any;
+  tableAction?: any;
 
   resetFunc?: () => Promise<void>;
   submitFunc?: () => Promise<void>;

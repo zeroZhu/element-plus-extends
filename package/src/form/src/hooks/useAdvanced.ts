@@ -50,7 +50,8 @@ export default function ({
   });
 
   const debounceUpdateAdvanced = debounce(updateAdvanced, 30);
-
+  const fieldsIsAdvancedMap: ShallowReactive<Recordable> = shallowReactive({});
+  
   watch(
     [() => unref(getSchema), () => advanceState.isAdvanced, () => unref(realWidthRef)],
     () => {
@@ -108,8 +109,6 @@ export default function ({
     }
   }
 
-  const fieldsIsAdvancedMap: ShallowReactive<Recordable> = shallowReactive({});
-
   function updateAdvanced() {
     let itemColSum = 0;
     let realItemColSum = 0;
@@ -134,7 +133,7 @@ export default function ({
           },
         });
       }
-
+      console.log('itemColSum===', { ...baseColProps, ...colProps })
       if (isShow && (colProps || baseColProps)) {
         const { itemColSum: sum, isAdvanced } = getAdvanced(
           { ...baseColProps, ...colProps },

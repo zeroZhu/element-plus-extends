@@ -7,9 +7,10 @@
     <ElRow v-bind="getRow">
       <slot name="formHeader"></slot>
       <template v-for="schema in getSchema" :key="schema.field">
+        {{ schema.field }}
         <FormItem
           :isAdvanced="fieldsIsAdvancedMap[schema.field]"
-          :tableAction="props.tableAction"
+          :tableAction="tableAction"
           :formAction="formAction"
           :schema="schema"
           :formProps="getProps"
@@ -52,6 +53,7 @@
 
   defineOptions({ name: 'BasicForm' });
 
+  console.log('FormItem ===', FormItem)
   const emit = defineEmits([
     'advanced-change',
     'reset',
@@ -130,6 +132,7 @@
         schemas.filter((schema) => !isIncludeSimpleComponents(schema.component)) as FormSchema[],
       );
     } else {
+      console.log('schemas===', schemas)
       return cloneDeep(schemas as FormSchema[]);
     }
   });
@@ -148,6 +151,7 @@
     formModel,
     defaultValueRef,
   });
+  console.log('fieldsIsAdvancedMap===', fieldsIsAdvancedMap)
   const getFormActionBindProps = computed(() => ({ ...getProps.value, ...advanceState }) as InstanceType<typeof FormAction>['$props'])
 
   const formAction = {} as any;

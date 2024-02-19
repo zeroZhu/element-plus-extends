@@ -1,20 +1,24 @@
 <script setup lang="ts">
+  import HelloWorld from './components/HelloWorld.vue';
   import { type FormSchema, BasicForm } from '@package/src/form';
 
   const schemas: FormSchema[] = [
     {
       field: 'name',
-      component: 'Input'
+      component: 'Input',
+      label: '姓名'
     },
     {
       field: 'age',
-      component: 'InputNumber'
+      component: 'InputNumber',
+      label: '年龄'
     },
   ]
 </script>
 
 <template>
   <div>
+    <HelloWorld />
     <BasicForm :schemas="schemas" />
   </div>
 </template>
