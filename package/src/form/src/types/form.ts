@@ -1,9 +1,11 @@
-import type { VNode, CSSProperties } from "vue";
+import type { ExtractPropTypes, VNode, CSSProperties, Ref, ComputedRef } from "vue";
 import type { RowProps as ElRowProps } from "element-plus/lib/components/row";
 import type { ColProps as ElColProps } from "element-plus/lib/components/col";
-import type { FormItemRule } from "element-plus/lib/components/form";
+import type { FormProps as ElFormProps, FormItemRule, ButtonProps as ElButtonProps, FormItemProp } from "element-plus";
 import type { FormItem } from "./formItem";
 import type { ComponentType, ComponentProps } from "./index";
+
+export type ActionButtonProps = ElButtonProps & { label: string | number };
 
 export type FieldMapToTime = [
   string,
@@ -43,37 +45,33 @@ export interface FormActionType {
   removeSchemaByField: (field: string | string[]) => Promise<void>;
   appendSchemaByField: (
     schema: FormSchemaInner | FormSchemaInner[],
-    prefixField: string | undefined,
-    first?: boolean | undefined
+    prefixField?: string,
+    first?: boolean
   ) => Promise<void>;
-  validateFields: (nameList?: string[]) => Promise<any>;
+  validateField: (nameList?: FormItemProp[]) => Promise<any>;
   validate: <T = Recordable>(nameList?: string[] | false) => Promise<T>;
-  scrollToField: (name: string, options?: ScrollOptions) => Promise<void>;
+  scrollToField: (name: string | string[]) => Promise<void>;
 }
 
-export interface FormProps {
+export type RegisterFn = (formInstance: FormActionType) => void;
+
+export type UseFormReturnType = [RegisterFn, FormActionType];
+
+export interface FormProps extends ExtractPropTypes<ElFormProps> {
   name?: string;
   layout?: FormLayout;
   // Form value
   model?: Recordable;
   // The width of all items in the entire form
   labelWidth?: number | string;
-  // alignment
-  labelAlign?: "left" | "right";
   // Row configuration for the entire form
   rowProps?: ElRowProps;
   // Submit form on reset
   submitOnReset?: boolean;
   // Submit form on form changing
   submitOnChange?: boolean;
-  // Col configuration for the entire form
-  labelCol?: Partial<ElColProps>;
-  // Col configuration for the entire form
-  wrapperCol?: Partial<ElColProps>;
-
   // General row style
   baseRowStyle?: CSSProperties;
-
   // General col configuration
   baseColProps?: Partial<ElColProps>;
 
@@ -97,6 +95,8 @@ export interface FormProps {
   autoSetPlaceHolder?: boolean;
   // Auto submit on press enter on input
   autoSubmitOnEnter?: boolean;
+  // Check whether the placeholder is added to the label
+  placeholderJoinLabel?: boolean;
   // Check whether the information is added to the label
   rulesMessageJoinLabel?: boolean;
   // Whether to show collapse and expand buttons
@@ -111,10 +111,10 @@ export interface FormProps {
   showActionButtonGroup?: boolean;
 
   // Reset button configuration
-  resetButtonOptions?: Partial<SYButtonProps>;
+  resetButtonOptions?: Partial<ActionButtonProps>;
 
   // Confirm button configuration
-  submitButtonOptions?: Partial<SYButtonProps>;
+  submitButtonOptions?: Partial<ActionButtonProps>;
 
   // Operation column configuration
   actionColOptions?: Partial<ElColProps>;
@@ -152,9 +152,9 @@ interface BaseFormSchema<T extends ComponentType = any> {
     | ((renderCallbackParams: RenderCallbackParams) => string | string[]);
   // BaseHelp component props
   helpComponentProps?: Partial<HelpComponentProps>;
-  // Label width, if it is passed, the labelCol and WrapperCol configured by itemProps will be invalid
+  // Label width, 
   labelWidth?: string | number;
-  // Disable the adjustment of labelWidth with global settings of formModel, and manually set labelCol and wrapperCol by yourself
+  // Disable the adjustment of labelWidth with global settings of formModel
   disabledLabelWidth?: boolean;
   // Component parameters
   componentProps?:
@@ -178,6 +178,8 @@ interface BaseFormSchema<T extends ComponentType = any> {
   // Validation rules
   rules?: Rule[];
   // Check whether the information is added to the label
+  placeholderJoinLabel?: boolean;
+  
   rulesMessageJoinLabel?: boolean;
 
   // Reference formModelItem

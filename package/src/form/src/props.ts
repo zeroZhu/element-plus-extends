@@ -15,6 +15,7 @@ export const basicProps = {
   transformDateFunc: (date: any) => {
     return date?.format?.('YYYY-MM-DD HH:mm:ss') ?? date;
   },
+  placeholderJoinLabel: true,
   rulesMessageJoinLabel: true,
   // 超过3行自动折叠
   autoAdvancedLine: 3,

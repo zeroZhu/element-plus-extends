@@ -7,9 +7,9 @@
 <script lang="ts" setup>
 import { computed, ref, unref, watch } from 'vue';
 import { ElSelect } from 'element-plus';
-import { get, isEqual, omit, toString } from 'lodash-es';
-import { isFunction } from '@package/utils/is';
+import { get, isEqual, omit, toString, isFunction } from 'lodash-es';
 import { useRuleFormItem } from '../hooks/useFormItem';
+
 
 type OptionsItem = {
   label?: string;
@@ -19,7 +19,7 @@ type OptionsItem = {
 }
 defineOptions({ name: 'ApiSelect', inheritAttrs: false });
 
-const props = withDefaults(defineProps<{
+type Props = {
   value: string | number | Recordable | Arrayable;
   numberToString: boolean;
   api: (arg?: any) => Promise<Recordable>;
@@ -30,7 +30,9 @@ const props = withDefaults(defineProps<{
   valueField: string;
   alwaysLoad: boolean;
   options: OptionsItem[];
-}>(), {
+}
+
+const props = withDefaults(defineProps<Props>(), {
   immediate: true,
   resultField: '',
   labelField: 'label',

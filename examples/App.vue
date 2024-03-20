@@ -1,6 +1,5 @@
 <script setup lang="ts">
-  import HelloWorld from './components/HelloWorld.vue';
-  import { type FormSchema, BasicForm } from '@package/src/form';
+  import { type FormSchema, BasicForm } from '@package/src/Form';
 
   const schemas: FormSchema[] = [
     {
@@ -18,7 +17,6 @@
 
 <template>
   <div>
-    <HelloWorld />
     <BasicForm :schemas="schemas" />
   </div>
 </template>

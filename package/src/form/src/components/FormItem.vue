@@ -1,12 +1,12 @@
 <script lang="tsx">
-import { type PropType, type Ref, computed, defineComponent, toRefs, unref } from "vue";
+import { type PropType, type Ref, computed, defineComponent, toRefs, unref, ref, reactive } from "vue";
 import type {
   FormActionType,
   FormProps,
   FormSchemaInner as FormSchema,
 } from "../types/form";
 import type { FormItemRule as ValidationRule } from "element-plus/lib/components/form";
-import { isIncludeSimpleComponents } from "../types/hooks";
+import { getGroupOption, groupComponents, isIncludeSimpleComponents } from "../types/hooks";
 
 import { useItemLabelWidth } from "../hooks/useLabelWidth";
 import {
@@ -17,8 +17,8 @@ import {
 } from "../hooks/useForm";
 import { cloneDeep, upperFirst } from "lodash-es";
 
-import { getSlot } from "@package/utils/tsx";
-import { isBoolean, isFunction, isEmpty } from "@package/utils/is";
+import { getSlot } from "@/utils/tsx";
+import { isBoolean, isFunction, isNull, isEmpty } from "@/utils/is";
 
 import { ElCol, ElFormItem, ElDivider } from "element-plus";
 import { componentMap } from "../componentMap";
@@ -142,7 +142,6 @@ export default defineComponent({
 
     // 判断是否显示
     function getShow(): { isShow: boolean; isIfShow: boolean } {
-      console.log('getShow====')
       // 获取单个schema中show if
       const { show, ifShow } = props.schema;
       // 获取单个schema是否折叠
@@ -203,20 +202,28 @@ export default defineComponent({
 
       function validator(rule: any, value: any) {
         const msg = rule.message || (defaultMsg as string);
-        if (isEmpty(value)) {
-          return Promise.reject(msg);
-        } else if (
-          typeof value === "object" &&
-          Reflect.has(value, "checked") &&
-          Reflect.has(value, "halfChecked") &&
-          Array.isArray(value.checked) &&
-          Array.isArray(value.halfChecked) &&
-          value.checked.length === 0 &&
-          value.halfChecked.length === 0
-        ) {
-          return Promise.reject(msg);
-        }
-        return Promise.resolve();
+        if (value === undefined || isNull(value)) {
+            // 空值
+            return Promise.reject(msg);
+          } else if (Array.isArray(value) && value.length === 0) {
+            // 数组类型
+            return Promise.reject(msg);
+          } else if (typeof value === 'string' && value.trim() === '') {
+            // 空字符串
+            return Promise.reject(msg);
+          } else if (
+            typeof value === 'object' &&
+            Reflect.has(value, 'checked') &&
+            Reflect.has(value, 'halfChecked') &&
+            Array.isArray(value.checked) &&
+            Array.isArray(value.halfChecked) &&
+            value.checked.length === 0 &&
+            value.halfChecked.length === 0
+          ) {
+            // 非关联选择的tree组件
+            return Promise.reject(msg);
+          }
+          return Promise.resolve();
       }
       // 判定是否必须
       const getRequired = isFunction(required)
@@ -276,13 +283,19 @@ export default defineComponent({
         renderComponentContent,
         component,
         field,
-        changeEvent = "change",
+        label,
+        placeholderJoinLabel,
+        changeEvent = "update:model-value",
         valueField,
       } = props.schema;
       // 判断是否是选择类型
-      const isCheck = component && ["Switch", "Checkbox"].includes(component);
+      const isCheck = component && ['Radio', 'Checkbox'].includes(component);
+      // 判定是否是Select类型
+      const isSelect = component && ['Select'].includes(component);
+
       // 格式化变更事件
       const eventKey = `on${upperFirst(changeEvent)}`;
+
       const on = {
         [eventKey]: (...args: Nullable<Recordable<any>>[]) => {
           const [e] = args;
@@ -294,11 +307,12 @@ export default defineComponent({
           props.setFormModel(field, value, props.schema);
         },
       };
+      
       // 获取组件类型
       const Comp = componentMap.get(component) as ReturnType<
         typeof defineComponent
       >;
-      const { autoSetPlaceHolder, size } = props.formProps;
+      const { autoSetPlaceHolder, placeholderJoinLabel: globalPlaceholderJoinLabel, size } = props.formProps;
       const propsData: Recordable<any> = {
         allowClear: true,
         size,
@@ -309,26 +323,48 @@ export default defineComponent({
 
       // 判定placeholder
       const isCreatePlaceholder = !propsData.disabled && autoSetPlaceHolder;
+      const joinLabel = Reflect.has(props.schema, "placeholderJoinLabel")
+        ? placeholderJoinLabel
+        : globalPlaceholderJoinLabel;
+      // 初始化默认placeholder
+      const assertLabel = joinLabel ? label : "";
       if (isCreatePlaceholder && component !== "RangePicker" && component) {
         propsData.placeholder =
           unref(getComponentsProps)?.placeholder ||
-          createPlaceholderMessage(component);
+          createPlaceholderMessage(component) + assertLabel;
       }
       propsData.codeField = field;
       propsData.formValues = unref(getValues);
 
       const bindValue: Recordable<any> = {
-        [valueField || (isCheck ? "checked" : "value")]: props.formModel[field],
+        [valueField || (isCheck ? "checked" : 'model-value')]: props.formModel[field]
       };
-
-      const compAttr: Recordable<any> = {
+      const compAttr: Recordable = {
         ...propsData,
         ...on,
         ...bindValue,
       };
-
       if (!renderComponentContent) {
-        return <Comp {...compAttr} />;
+        // 如果是有子组件类型的
+        const isGroupComponent = groupComponents.includes(component);
+        const childKey = getGroupOption(props.schema);
+        if (isGroupComponent && childKey) {
+          const CompChild = componentMap.get(childKey) as ReturnType<typeof defineComponent>;
+          const { options } = props.schema.componentProps;
+          return <Comp {...compAttr} >
+            {options.map((item: JSX.IntrinsicAttributes) => {
+              const { label, value, ...others } = item;
+              if (childKey === 'Option') {
+                return <CompChild label={label} value={value} {...others}>{ label }</CompChild>;
+              } else {
+                return <CompChild label={label} value={value} {...others}>{ label }</CompChild>;
+              }
+            })}
+          </Comp>;
+        } else {
+          return <Comp {...compAttr} />;
+        }
+        
       }
 
       const compSlot = isFunction(renderComponentContent)
@@ -341,13 +377,37 @@ export default defineComponent({
         : {
             default: () => renderComponentContent,
           };
+
       return <Comp {...compAttr}>{compSlot}</Comp>;
     }
 
+    // function renderLabelHelpMessage() {
+    //   const { label, helpMessage, helpComponentProps, subLabel } = props.schema;
+    //   const renderLabel = subLabel ? (
+    //     <span>
+    //       {label} <span class="text-secondary">{subLabel}</span>
+    //     </span>
+    //   ) : (
+    //     label
+    //   );
+    //   const getHelpMessage = isFunction(helpMessage)
+    //     ? helpMessage(unref(getValues))
+    //     : helpMessage;
+    //   if (!getHelpMessage || (Array.isArray(getHelpMessage) && getHelpMessage.length === 0)) {
+    //     return renderLabel;
+    //   }
+    //   return (
+    //     <span>
+    //       {renderLabel}
+    //       {/* <BasicHelp placement="top" class="mx-1" text={getHelpMessage} {...helpComponentProps} /> */}
+    //     </span>
+    //   );
+    // }
+
     function renderItem() {
-      const { itemProps, slot, render, field, suffix, component } =
+      const { itemProps, slot, render, label, field, suffix, component } =
         props.schema;
-      const { labelCol, wrapperCol } = unref(itemLabelWidthProp);
+      const { labelWidth } = unref(itemLabelWidthProp);
       const { colon } = props.formProps;
       const opts = {
         disabled: unref(getDisable),
@@ -359,7 +419,7 @@ export default defineComponent({
           {
             ItemComponent = (
               <ElCol span={24}>
-                <ElDivider {...unref(getComponentsProps)}>1111</ElDivider>
+                <ElDivider {...unref(getComponentsProps)}>{label}</ElDivider>
               </ElCol>
             );
           }
@@ -387,19 +447,17 @@ export default defineComponent({
           }
           ItemComponent = (
             <ElFormItem
-              name={field}
+              prop={field}
               colon={colon}
-              class={{ "suffix-item": showSuffix }}
+              class={showSuffix ? "suffix-item"+itemProps?.class : itemProps?.class}
               {...(itemProps as Recordable<any>)}
-              label="111"
+              // @ts-ignore
+              label={label}
               rules={handleRules()}
-              labelCol={labelCol}
-              wrapperCol={wrapperCol}
+              labelWidth={labelWidth}
             >
-              <div style="display:flex">
-                <div style="flex:1;">{getContent()}</div>
-                {showSuffix && <span class="suffix">{getSuffix}</span>}
-              </div>
+              <div class='flex items-center flex-auto'>{getContent()}</div>
+              {showSuffix && <span class="suffix">{getSuffix}</span>}
             </ElFormItem>
           );
         }
@@ -415,12 +473,12 @@ export default defineComponent({
         component,
         slot,
       } = props.schema;
-      if ((component && componentMap.has(component)) || slot) return null;
+      if (!((component && componentMap.has(component)) || slot)) return null;
 
       const { baseColProps = {} } = props.formProps;
       const realColProps = { ...baseColProps, ...colProps };
       const { isIfShow, isShow } = getShow();
-      console.log('isIfShow====111111111')
+      
       const opts = {
         disabled: unref(getDisable),
         readonly: unref(getReadonly),
