@@ -1,25 +1,30 @@
-<script setup lang="ts">
-  import { type FormSchema, BasicForm } from '@package/src/Form';
-
-  const schemas: FormSchema[] = [
-    {
-      field: 'name',
-      component: 'Input',
-      label: '姓名'
-    },
-    {
-      field: 'age',
-      component: 'InputNumber',
-      label: '年龄'
-    },
-  ]
-</script>
-
 <template>
   <div>
-    <BasicForm :schemas="schemas" />
+    <!-- <BasicForm @register="register" /> -->
+    <HelloWorld></HelloWorld>
   </div>
 </template>
+
+<script setup lang="ts">
+  import HelloWorld from './components/HelloWorld.vue';
+  // import { type FormSchema, BasicForm, useForm } from '@package/src/Form';
+  // const schemas: FormSchema[] = [
+  //   {
+  //     field: 'name',
+  //     component: 'Input',
+  //     label: '姓名'
+  //   },
+  //   {
+  //     field: 'age',
+  //     component: 'InputNumber',
+  //     label: '年龄'
+  //   },
+  // ];
+  // const [register, {}] = useForm({
+  //   schemas
+  // })
+
+</script>
 
 <style scoped>
 .logo {

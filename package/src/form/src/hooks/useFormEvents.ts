@@ -2,11 +2,10 @@ import { toRaw, unref, type ComputedRef, type Ref, nextTick } from 'vue';
 import type { FormActionType, FormProps, FormSchemaInner as FormSchema } from '../types/form';
 import type { FormItemProp } from 'element-plus';
 import { dateComponents, handleInputNumberValue, isIncludeSimpleComponents } from '../types/hooks';
-import { cloneDeep, set, uniqBy, get, isFunction, isString, isNil } from 'lodash-es';
-import { isArray, isDef, isObject } from '@/utils/is';
-import { dateUtil } from '@/utils/date';
-import { error } from '@/utils/log';
-import { deepMerge } from '@/utils';
+import { cloneDeep, set, uniqBy, get, isArray, isUndefined, isObject, isFunction, isString, isNil } from 'lodash-es';
+import { dateUtil } from '@package/utils/date';
+import { deepMerge } from '@package/utils';
+import { error } from '@package/utils/log';
 
 interface UseFormActionContext {
   emit: EmitType;
@@ -335,12 +334,12 @@ export function useFormEvents({
         nestKeyArray.forEach((nestKey: string) => {
           try {
             const value = nestKey.split('.').reduce((out, item) => out[item], values);
-            if (isDef(value)) {
+            if (!isUndefined(value)) {
               unref(formModel)[nestKey] = unref(value);
               validKeys.push(nestKey);
             }
           } catch (error) {
-            if (isDef(defaultValueRef.value[nestKey])) {
+            if (!isUndefined(defaultValueRef.value[nestKey])) {
               unref(formModel)[nestKey] = cloneDeep(unref(defaultValueRef.value[nestKey]));
             }
           }

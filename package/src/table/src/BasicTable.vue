@@ -27,7 +27,7 @@
 import type { BasicTableProps, TableActionType } from './types/table'
 
 import { computed, ref, unref, useSlots } from 'vue'
-import { BasicForm, useForm } from '@/components/Form'
+import { BasicForm, useForm } from '@package/src/Form'
 import { ElTable, ElTableColumn, ElPagination } from 'element-plus'
 
 import { useData } from './hooks/useData'
@@ -36,7 +36,7 @@ import { usePagination } from './hooks/usePagination'
 import { useTableEvents } from './hooks/useTableEvents'
 import { useTableForm } from './hooks/useTableForm'
 import { basicProps } from './props'
-import { isBoolean } from '@/utils/is'
+import { isBoolean } from 'lodash-es'
 
 defineOptions({ name: 'BasicTable' });
 

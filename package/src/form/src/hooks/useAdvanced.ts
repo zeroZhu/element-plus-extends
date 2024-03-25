@@ -2,9 +2,8 @@ import type { ColProps as ElColProps } from 'element-plus/lib/components/col';
 import type { AdvanceState } from '../types/hooks';
 import type { FormProps, FormSchemaInner as FormSchema } from '../types/form';
 import { ComputedRef, getCurrentInstance, Ref, shallowReactive, computed, unref, watch, ShallowReactive } from 'vue';
-import { isBoolean, isFunction, isNumber, isObject } from '@/utils/is';
-import { useBreakpoint } from '@/hooks/useBreakpoint';
-import { debounce } from 'lodash-es';
+import { useBreakpoint } from '@package/hooks/useBreakpoint';
+import { isBoolean, isFunction, isNumber, isObject, debounce } from 'lodash-es';
 
 const BASIC_COL_LEN = 24;
 

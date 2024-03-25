@@ -31,12 +31,12 @@ import FormAction from './components/FormAction.vue'
 import { basicProps } from './props'
 
 import { cloneDeep, debounce } from 'lodash-es'
-import { dateUtil } from '@/utils/date'
+import { dateUtil } from '@package/utils/date'
+import { deepMerge } from '@package/utils'
 import useAdvanced from './hooks/useAdvanced'
 import { useFormValues } from './hooks/useFormValues'
 import { useFormEvents } from './hooks/useFormEvents'
 import { createFormContext } from './hooks/useFormContext'
-import { deepMerge } from '@/utils'
 
 defineOptions({ name: 'BasicForm' })
 const emit = defineEmits(['advanced-change', 'reset', 'submit', 'register', 'field-value-change'])

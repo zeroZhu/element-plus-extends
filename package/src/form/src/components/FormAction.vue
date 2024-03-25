@@ -40,14 +40,13 @@
 </template>
 
 <script lang="ts" setup>
-  import type { ColProps as ElColProps } from 'element-plus';
   import type { ActionButtonProps } from '../types/form';
 
   import { CSSProperties, computed } from 'vue';
-  import { ElCol, ElFormItem } from 'element-plus';
+  import { type ColProps as ElColProps, ElCol, ElFormItem, ElButton } from 'element-plus';
   import { useFormContext } from '../hooks/useFormContext';
 
-  import { BasicIcon as Icon } from '@/components/Icon';
+  
 
   defineOptions({ name: 'BasicFormAction' });
 

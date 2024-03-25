@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { isNumber } from '@/utils/is'
+import { isNumber } from 'lodash-es'
 interface TextProps {
   modelValue?: string | number;
   size?: number | string;

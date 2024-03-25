@@ -3,13 +3,14 @@ import { resolve } from 'path'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import ElementPlus from 'unplugin-element-plus/vite'
-
+import PurgeIcons from 'vite-plugin-purge-icons'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     vueJsx(),
-    ElementPlus({})
+    ElementPlus({}),
+    PurgeIcons()
   ],
   resolve: {
     // 配置别名
@@ -28,3 +29,4 @@ export default defineConfig({
     }
   },
 })
+ 

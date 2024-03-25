@@ -9,9 +9,10 @@ import type {
   UseFormReturnType,
 } from "../types/form";
 import type { FormItemRule as ValidationRule } from "element-plus/lib/components/form";
-import { isProdMode } from "@/utils/env";
-import { getDynamicProps } from "@/hooks/useHelper";
-import { error } from "@/utils/log";
+import { isProdMode } from "@package/utils/env";
+import { getDynamicProps } from "@package/hooks/useHelper";
+import { error } from "@package/utils/log";
+import { FormItemProps } from "element-plus";
 
 export function isSlotFormSchema(schema: FormSchema): schema is SlotFormSchema {
   return "slot" in schema;
@@ -184,7 +185,7 @@ export function useForm(props?: Props): UseFormReturnType {
       return form.validate();
     },
 
-    validateField: async (nameList?: string | string[]): Promise<any> => {
+    validateField: async (nameList?: FormItemProps[]): Promise<any> => {
       const form = await getForm();
       return form.validateField(nameList);
     },

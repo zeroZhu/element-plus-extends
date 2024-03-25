@@ -15,10 +15,9 @@ import {
   isComponentFormSchema,
   setComponentRuleType,
 } from "../hooks/useForm";
-import { cloneDeep, upperFirst } from "lodash-es";
+import { isBoolean, isFunction, isNull, isEmpty, cloneDeep, upperFirst } from "lodash-es";
 
-import { getSlot } from "@/utils/tsx";
-import { isBoolean, isFunction, isNull, isEmpty } from "@/utils/is";
+import { getSlot } from "@package/utils/tsx";
 
 import { ElCol, ElFormItem, ElDivider } from "element-plus";
 import { componentMap } from "../componentMap";

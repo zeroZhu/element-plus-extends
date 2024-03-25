@@ -1,6 +1,6 @@
 import type { Slots } from 'vue';
-import type { RenderOpts } from '@package/src/form/src/types/form';
-import { isFunction } from './is';
+import type { RenderOpts } from '@package/src/Form/src/types/form';
+import { isFunction } from 'lodash-es';
 
 /**
  * @description:  Get slot to prevent empty error

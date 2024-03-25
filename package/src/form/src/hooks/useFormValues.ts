@@ -1,8 +1,7 @@
 import { type Ref, type ComputedRef, unref } from 'vue';
 import type { FormProps, FormSchemaInner as FormSchema } from '../types/form';
-import { isArray, isFunction, isEmpty, isObject, isString, isNil } from '@/utils/is';
-import { cloneDeep, get, set, unset } from 'lodash-es';
-import { dateUtil } from '@/utils/date';
+import { isArray, isFunction, isEmpty, isObject, isString, isNil, cloneDeep, get, set, unset } from 'lodash-es';
+import { dateUtil } from '@package/utils/date';
 
 interface UseFormValuesContext {
   defaultValueRef: Ref<any>;
@@ -116,7 +115,7 @@ export function useFormValues({
 
       const transformDateFunc = unref(getProps).transformDateFunc;
       if (isObject(value)) {
-        value = value.map((item: any) => transformDateFunc?.(item))
+        value = (value as Recordable).map((item: any) => transformDateFunc?.(item))
       }
 
       if (isString(value)) {
